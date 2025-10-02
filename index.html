@@ -16,7 +16,7 @@
                         <h3 class="card-title">Form Permintaan Leaflet Hard Copy</h3>
                     </div>
                     <div class="card-body">
-                        <form id="requestForm" action="https://docs.google.com/forms/d/e/1FAIpQLSdNz3EAWmsvYB3FCYLq3sMXvWDAiU73mA_X8AmNNbeLJWAOfQ/formResponse" method="POST" target="no-target">
+                        <form id="requestForm" action="https://docs.google.com/forms/d/e/1FAIpQLSdNz3EAWmsvYB3FCYLq3sMXvWDAiU73mA_X8AmNNbeLJWAOfQ/formResponse\" method="POST" target="no-target">
                             <div class="mb-3">
                                 <label for="nama" class="form-label">Nama atau Instansi/Unit Kerja</label>
                                 <input type="text" class="form-control" id="nama" name="entry.2029909995" required>
@@ -30,7 +30,11 @@
                                 <input type="date" class="form-control" id="tanggal" name="entry.1495838599" required>
                             </div>
                             <div class="mb-3">
-                                <label for="jumlah" class="form-label">Permintaan Leaflet Hard Copy (Masukkan Angka)</label>
+                                <label for="leafletTitle" class="form-label">Nama Leaflet yang Diminta</label>
+                                <input type="text" class="form-control" id="leafletTitle" name="entry.391530723" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="jumlah" class="form-label">Jumlah Salinan</label>
                                 <input type="number" class="form-control" id="jumlah" name="entry.391530723" min="1" required>
                             </div>
                             <div class="d-grid">
@@ -47,8 +51,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const leafletTitle = urlParams.get('leaflet');
             if (leafletTitle) {
-                document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
-                document.getElementById('nama').value = decodeURIComponent(leafletTitle);
+                document.getElementById('leafletTitle').value = decodeURIComponent(leafletTitle);
             }
         });
     </script>
