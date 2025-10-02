@@ -52,23 +52,62 @@ const leaflets = [
 ];
 
 const leafletContainer = document.getElementById('leaflet-cards');
+const modalBodyContent = document.getElementById('modal-body-content');
+const photoModalLabel = document.getElementById('photoModalLabel');
 
-leaflets.forEach(leaflet => {
-    const card = document.createElement('div');
-    card.className = 'col';
-    card.innerHTML = `
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">${leaflet.title}</h5>
-                <p class="card-text">${leaflet.description}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                        <a href="#" class="btn btn-sm btn-outline-secondary">Lihat Foto</a>
-                        <a href="index.html?leaflet=${encodeURIComponent(leaflet.title)}" class="btn btn-sm btn-outline-secondary">Ajukan Permintaan</a>
+// Fungsi untuk menampilkan kartu leaflet
+function createLeafletCards() {
+    leafletContainer.innerHTML = '';
+    leaflets.forEach((leaflet, index) => {
+        const card = document.createElement('div');
+        card.className = 'col';
+        card.innerHTML = `
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title fw-bold">${leaflet.title}</h5>
+                        <p class="card-text">${leaflet.description}</p>
+                    </div>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#photoModal" data-leaflet-index="${index}">
+                            <i class="fas fa-eye me-1"></i> Lihat Foto
+                        </button>
+                        <a href="index.html?leaflet=${encodeURIComponent(leaflet.title)}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-copy me-1"></i> Ajukan Permintaan
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
-    leafletContainer.appendChild(card);
+        `;
+        leafletContainer.appendChild(card);
+    });
+}
+
+// Panggil fungsi untuk membuat kartu saat halaman dimuat
+createLeafletCards();
+
+// Tambahkan event listener untuk tombol "Lihat Foto"
+leafletContainer.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-leaflet-index]');
+    if (button) {
+        const index = button.getAttribute('data-leaflet-index');
+        const leaflet = leaflets[index];
+        
+        // Bersihkan konten modal sebelumnya
+        modalBodyContent.innerHTML = '';
+        photoModalLabel.textContent = `Foto Leaflet: ${leaflet.title}`;
+
+        // Jika leaflet memiliki foto, tambahkan ke modal
+        if (leaflet.images && leaflet.images.length > 0) {
+            leaflet.images.forEach(imagePath => {
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.alt = leaflet.title;
+                img.className = 'img-fluid mb-2 rounded shadow-sm';
+                modalBodyContent.appendChild(img);
+            });
+        } else {
+            modalBodyContent.innerHTML = '<p class="text-muted">Tidak ada foto tersedia untuk leaflet ini.</p>';
+        }
+    }
 });
