@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Leaflet Online IHPPK</title>
+
+  <!-- Tailwind via CDN (simple, no build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Optional: Icon set -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+  <!-- Optional Analytics: replace G-XXXXXXXXXX with your GA4 measurement ID -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-XXXXXXXXXX');
+  </script> -->
+
+  <style>
+    /* Smooth card hover */
+    .card:hover { transform: translateY(-2px); }
+    .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+
+  <!--
+  ==========================================================
+  HOW TO USE / CARA PAKAI (ringkas, cukup GitHub Pages)
+  ==========================================================
+  1) Taruh file ini sebagai `index.html` di repository GitHub kamu.
+  2) Buat file `leaflets.json` di root repo dengan struktur contoh di bawah.
+  3) Aktifkan GitHub Pages (Settings → Pages → Source: `main` → / (root)).
+  4) (Opsional) Ganti FORM_ID dan ENTRY_ID_* sesuai Google Form kamu untuk tombol "Minta Hard Copy".
+  5) (Opsional) Aktifkan Google Analytics (GA4) pada snippet di atas agar tahu siapa/berapa yang akses (agregat). 
+
+  Contoh `leaflets.json` (salin ke file terpisah bernama leaflets.json):
+  [
+    {
+      "id": "lf-001",
+      "title": "Leaflet Kebersihan Tangan",
+      "desc": "Panduan 6 langkah cuci tangan yang baik dan benar.",
+      "image": "https://drive.google.com/uc?export=view&id=FILE_ID_GDRIVE_1",
+      "tags": ["kebersihan", "edukasi"],
+      "updated": "2025-09-20"
+    },
+    {
+      "id": "lf-002",
+      "title": "Leaflet Etika Batuk",
+      "desc": "Cara mencegah penyebaran droplet saat batuk/bersin.",
+      "image": "https://drive.google.com/uc?export=view&id=FILE_ID_GDRIVE_2",
+      "tags": ["infeksi", "edukasi"],
+      "updated": "2025-09-22"
+    }
+  ]
+
+  Catatan gambar Google Drive: 
+  - Pastikan file gambar di Drive diset share: Anyone with the link (public/siapa saja dengan tautan).
+  - Format URL gambar: https://drive.google.com/uc?export=view&id=FILE_ID
+  - Atau gunakan CDN viewer Google: https://lh3.googleusercontent.com/d/FILE_ID=w1200 (atur w= untuk lebar).
+  -->
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-50 backdrop-blur bg-white/80 border-b">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
+      <div class="p-2 rounded-xl bg-emerald-100 text-emerald-700"><i class="ti ti-layout-grid"></i></div>
+      <div>
+        <h1 class="text-xl font-bold leading-tight">Dashboard Leaflet Online IHPPK</h1>
+        <p class="text-sm text-slate-500">Akses cepat daftar leaflet + tautan permintaan hard copy</p>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <!-- (Opsional) badge pengunjung ringan via GA/Plausible; placeholder visual saja -->
+        <span class="text-xs px-2 py-1 rounded-full bg-slate-100 border">Live</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Controls -->
+    <section class="mb-4">
+      <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Cari leaflet</label>
+          <div class="relative">
+            <input id="q" type="text" placeholder="Ketik judul/tag/kata kunci…" class="w-full rounded-xl border px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-300" />
+            <i class="ti ti-search absolute right-3 top-2.5 text-slate-400"></i>
+          </div>
+        </div>
+        <div class="w-full md:w-60">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Urutkan</label>
+          <select id="sort" class="w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-300">
+            <option value="recent">Terbaru diperbarui</option>
+            <option value="az">A → Z</option>
+            <option value="za">Z → A</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid -->
+    <section>
+      <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="empty" class="hidden text-center text-slate-500 py-12">Tidak ada hasil.</div>
+    </section>
+  </main>
+
+  <!-- Image Modal -->
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black/60 p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full overflow-hidden">
+      <div class="flex items-center justify-between p-3 border-b">
+        <h3 id="modalTitle" class="font-semibold"></h3>
+        <button id="modalClose" class="p-2 hover:bg-slate-100 rounded-lg"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="p-3">
+        <img id="modalImg" src="" alt="Preview" class="w-full h-auto rounded-lg"/>
+        <p id="modalDesc" class="mt-2 text-sm text-slate-600"></p>
+      </div>
+      <div class="p-3 border-t flex gap-2">
+        <a id="modalOpenOriginal" href="#" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border hover:bg-slate-50"><i class="ti ti-external-link"></i> Buka gambar asli</a>
+        <button id="modalReqBtn" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"><i class="ti ti-mail"></i> Minta Hard Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Konfigurasi Form ===
+    // Ganti FORM_ID dengan ID Google Form kamu.
+    // Lalu sesuaikan ENTRY_ID_TITLE/ENTRY_ID_ID dengan parameter prefill pertanyaan di Form.
+    // Cara cek entry: di editor Form → klik 3 titik → Dapatkan link pramuat → isi dummy → salin URL → lihat parameter "entry.xxxxxx".
+    const FORM_ID = "1FAIpQLSd_FORM_ID_CONTOH"; // TODO: ganti
+    const ENTRY_ID_TITLE = "entry.111111"; // TODO: ganti sesuai field Judul Leaflet
+    const ENTRY_ID_ID = "entry.222222";    // TODO: ganti sesuai field Kode/ID Leaflet (opsional)
+
+    function buildFormURL(item) {
+      const base = `https://docs.google.com/forms/d/e/${FORM_ID}/viewform`;
+      const params = new URLSearchParams();
+      params.set(ENTRY_ID_TITLE, item.title);
+      params.set(ENTRY_ID_ID, item.id || "");
+      return `${base}?${params.toString()}`;
+    }
+
+    // Utility fmt
+    const $ = (s, el=document) => el.querySelector(s);
+    const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+
+    const state = { all: [], view: [] };
+
+    async function loadLeaflets() {
+      try {
+        const res = await fetch('leaflets.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Gagal memuat leaflets.json');
+        const data = await res.json();
+        // Normalisasi
+        state.all = (data || []).map(x => ({
+          id: x.id || crypto.randomUUID(),
+          title: x.title || 'Tanpa Judul',
+          desc: x.desc || '',
+          image: x.image || '',
+          tags: Array.isArray(x.tags) ? x.tags : [],
+          updated: x.updated ? new Date(x.updated) : new Date(0)
+        }));
+        state.view = [...state.all];
+        applySort($('#sort').value);
+        render();
+      } catch (e) {
+        console.error(e);
+        $('#grid').innerHTML = `<div class="col-span-full p-4 rounded-xl border bg-white">Tidak bisa memuat <code>leaflets.json</code>. Pastikan file ada di root repo.</div>`;
+      }
+    }
+
+    function render() {
+      const grid = $('#grid');
+      grid.innerHTML = '';
+      if (state.view.length === 0) {
+        $('#empty').classList.remove('hidden');
+        return;
+      }
+      $('#empty').classList.add('hidden');
+
+      for (const item of state.view) {
+        const card = document.createElement('article');
+        card.className = 'card bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col';
+        card.innerHTML = `
+          <div class="relative aspect-[4/3] bg-slate-100">
+            ${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover">` : `<div class='w-full h-full grid place-items-center text-slate-400'>No Image</div>`}
+            <button class="absolute top-2 right-2 p-2 rounded-lg bg-white/90 hover:bg-white shadow" data-action="preview"><i class="ti ti-zoom-in"></i></button>
+          </div>
+          <div class="p-4 flex-1 flex flex-col gap-2">
+            <h3 class="font-semibold leading-tight">${escapeHtml(item.title)}</h3>
+            <p class="text-sm text-slate-600 truncate-2">${escapeHtml(item.desc)}</p>
+            <div class="flex flex-wrap gap-2 mt-1">
+              ${item.tags.map(t => `<span class='text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100'>${escapeHtml(t)}</span>`).join('')}
+            </div>
+            <div class="mt-auto flex items-center gap-2 pt-2">
+              ${item.image ? `<a href="${item.image}" target="_blank" class="inline-flex items-center gap-1 px-3 py-2 rounded-xl border hover:bg-slate-50"><i class="ti ti-external-link"></i><span>Buka</span></a>` : ''}
+              <a href="${buildFormURL(item)}" target="_blank" class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"><i class="ti ti-mail"></i><span>Minta Hard Copy</span></a>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Update: ${fmtDate(item.updated)}</div>
+          </div>
+        `;
+        // preview button
+        card.querySelector('[data-action="preview"]').addEventListener('click', () => openModal(item));
+        grid.appendChild(card);
+      }
+    }
+
+    function fmtDate(d) {
+      if (!d || !(d instanceof Date) || isNaN(d)) return '-';
+      return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"]+/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
+    }
+
+    function applySort(mode) {
+      const v = mode || 'recent';
+      state.view.sort((a,b) => {
+        if (v === 'az') return a.title.localeCompare(b.title);
+        if (v === 'za') return b.title.localeCompare(a.title);
+        return (b.updated - a.updated);
+      });
+    }
+
+    function applyFilter(q) {
+      const k = q.trim().toLowerCase();
+      if (!k) { state.view = [...state.all]; return; }
+      state.view = state.all.filter(x => {
+        const hay = [x.title, x.desc, ...(x.tags||[])].join(' ').toLowerCase();
+        return hay.includes(k);
+      });
+    }
+
+    // Modal
+    function openModal(item) {
+      $('#modalTitle').textContent = item.title;
+      $('#modalDesc').textContent = item.desc || '';
+      $('#modalImg').src = item.image || '';
+      $('#modalOpenOriginal').href = item.image || '#';
+      $('#modalReqBtn').onclick = () => window.open(buildFormURL(item), '_blank');
+      $('#modal').classList.remove('hidden');
+      $('#modal').classList.add('flex');
+    }
+    $('#modalClose').addEventListener('click', () => { $('#modal').classList.add('hidden'); $('#modal').classList.remove('flex'); });
+    $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') { $('#modalClose').click(); } });
+
+    // Events
+    $('#q').addEventListener('input', (e) => { applyFilter(e.target.value); applySort($('#sort').value); render(); });
+    $('#sort').addEventListener('change', (e) => { applySort(e.target.value); render(); });
+
+    // Init
+    loadLeaflets();
+
+    // ——————————————————————————————————————————————————————————
+    // BONUS: Prefill identitas pengakses via query param untuk Form
+    // Contoh: tambahkan ?by=nama@domain.com ke URL dashboard
+    // lalu di Form tambahkan field "Email/Identitas Peminta" dan mapkan manual saat review responses.
+    // Kamu juga bisa menambahkan field ini otomatis di Form prefill dengan mengganti buildFormURL agar ikut mengirim ?entry.X=by
+    const urlBy = new URLSearchParams(location.search).get('by');
+    if (urlBy) {
+      document.title += ` · ${urlBy}`;
+    }
+
+  </script>
+</body>
+</html>
