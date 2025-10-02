@@ -55,7 +55,6 @@ const leafletContainer = document.getElementById('leaflet-cards');
 const modalBodyContent = document.getElementById('modal-body-content');
 const photoModalLabel = document.getElementById('photoModalLabel');
 
-// Fungsi untuk menampilkan kartu leaflet
 function createLeafletCards() {
     leafletContainer.innerHTML = '';
     leaflets.forEach((leaflet, index) => {
@@ -69,7 +68,7 @@ function createLeafletCards() {
                         <p class="card-text">${leaflet.description}</p>
                     </div>
                     <div class="mt-3">
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#photoModal" data-leaflet-index="${index}">
+                        <button type="button" class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#photoModal" data-leaflet-index="${index}">
                             <i class="fas fa-eye me-1"></i> Lihat Foto
                         </button>
                         <a href="index.html?leaflet=${encodeURIComponent(leaflet.title)}" class="btn btn-outline-secondary btn-sm">
@@ -83,21 +82,17 @@ function createLeafletCards() {
     });
 }
 
-// Panggil fungsi untuk membuat kartu saat halaman dimuat
 createLeafletCards();
 
-// Tambahkan event listener untuk tombol "Lihat Foto"
 leafletContainer.addEventListener('click', (event) => {
     const button = event.target.closest('[data-leaflet-index]');
     if (button) {
         const index = button.getAttribute('data-leaflet-index');
         const leaflet = leaflets[index];
         
-        // Bersihkan konten modal sebelumnya
         modalBodyContent.innerHTML = '';
         photoModalLabel.textContent = `Foto Leaflet: ${leaflet.title}`;
 
-        // Jika leaflet memiliki foto, tambahkan ke modal
         if (leaflet.images && leaflet.images.length > 0) {
             leaflet.images.forEach(imagePath => {
                 const img = document.createElement('img');
