@@ -1,76 +1,84 @@
-// Data leaflet
+// Data leaflet yang diperbarui dengan semua informasi
 const leafletData = [
     {
         id: 1,
         title: "ASI Eksklusif",
         description: "Informasi mengenai pentingnya memberikan ASI secara eksklusif untuk kesehatan bayi.",
-        image: "assets/asi-eksklusif.jpg",
+        image: "assets/asi-eksklusif/ASI eksklusif.jpg",
         category: "Bayi & Anak",
-        keywords: ["asi", "bayi", "eksklusif", "menyusui", "ibu", "anak"]
+        keywords: ["asi", "bayi", "eksklusif", "menyusui", "ibu", "anak", "balita"]
     },
     {
         id: 2,
         title: "Buku Saku Anak Sehat",
         description: "Buku panduan saku 'Aku Sehat Siap Berpetualang' untuk anak-anak.",
-        image: "assets/buku-saku-anak.jpg",
+        image: "assets/buku-saku/Buku Saku.jpg",
         category: "Bayi & Anak",
-        keywords: ["anak", "buku", "panduan", "sehat", "petualang"]
+        keywords: ["anak", "buku", "panduan", "sehat", "petualang", "kesehatan"]
     },
     {
         id: 3,
         title: "DHF (Demam Berdarah)",
         description: "Informasi pencegahan dan penanganan penyakit Demam Berdarah Dengue (DHF).",
-        image: "assets/dhf.jpg",
+        image: "assets/dhf/DHF.jpg",
         category: "Penyakit Menular",
-        keywords: ["dhf", "demam", "berdarah", "dengue", "nyamuk", "pencegahan"]
+        keywords: ["dhf", "demam", "berdarah", "dengue", "nyamuk", "pencegahan", "virus"]
     },
     {
         id: 4,
         title: "Gizi Sehat bagi Lansia",
         description: "Panduan dan tips menjaga gizi sehat untuk para lanjut usia.",
-        image: "assets/gizi-lansia.jpg",
+        image: "assets/gizi-lansia/Gizi lansia.jpg",
         category: "Gizi & Nutrisi",
-        keywords: ["gizi", "lansia", "nutrisi", "makanan", "sehat", "usia"]
+        keywords: ["gizi", "lansia", "nutrisi", "makanan", "sehat", "usia", "manula"]
     },
     {
         id: 5,
         title: "Hepatitis C",
         description: "Penjelasan tentang penyakit Hepatitis C, cara penularan, gejala, dan pencegahannya.",
-        image: "assets/hepatitis-c.jpg",
+        image: "assets/hepatitis/Hepatitis.jpg",
         category: "Penyakit Menular",
-        keywords: ["hepatitis", "liver", "hati", "virus", "penularan"]
+        keywords: ["hepatitis", "liver", "hati", "virus", "penularan", "sakit"]
     },
     {
         id: 6,
         title: "Osteoporosis",
         description: "Informasi mengenai penyakit pengeroposan tulang (Osteoporosis) dan cara pencegahannya.",
-        image: "assets/osteoporosis.jpg",
+        image: "assets/osteoporosis/Osteoporosis.jpg",
         category: "Penyakit Degeneratif",
-        keywords: ["osteoporosis", "tulang", "kalsium", "lansia", "pengeroposan"]
+        keywords: ["osteoporosis", "tulang", "kalsium", "lansia", "pengeroposan", "sakit", "sendi"]
     },
     {
         id: 7,
         title: "Pijat Bayi",
         description: "Panduan dan manfaat melakukan pijat bayi (baby massage) untuk pertumbuhan optimal.",
-        image: "assets/pijat-bayi.jpg",
+        image: "assets/pijat-bayi/pijat bayi.jpg",
         category: "Bayi & Anak",
-        keywords: ["pijat", "bayi", "massage", "pertumbuhan", "stimulasi"]
+        keywords: ["pijat", "bayi", "massage", "pertumbuhan", "stimulasi", "anak"]
     },
     {
         id: 8,
         title: "Penyakit Jantung Koroner (PJK)",
         description: "Penjelasan mengenai penyakit jantung koroner (PJK) dan faktor risikonya.",
-        image: "assets/pjk.jpg",
+        image: "assets/pjk/PJK.jpg",
         category: "Penyakit Degeneratif",
-        keywords: ["jantung", "koroner", "pjk", "kardio", "serangan"]
+        keywords: ["jantung", "koroner", "pjk", "kardio", "serangan", "sakit", "paru"]
     },
     {
         id: 9,
         title: "Stunting",
         description: "Informasi penting tentang stunting, penyebab, dan cara penanganannya.",
-        image: "assets/stunting.jpg",
+        image: "assets/stunting/Stunting.jpg",
         category: "Bayi & Anak",
-        keywords: ["stunting", "pertumbuhan", "anak", "gizi", "pendek"]
+        keywords: ["stunting", "pertumbuhan", "anak", "gizi", "pendek", "balita", "nutrisi"]
+    },
+    {
+        id: 10,
+        title: "Thalassemia",
+        description: "Penjelasan lengkap mengenai penyakit genetik Thalassemia.",
+        image: "assets/thalasemia/Thalassemia.jpg",
+        category: "Bayi & Anak",
+        keywords: ["thalasemia", "genetik", "darah", "penyakit", "anemia"]
     }
 ];
 
@@ -92,8 +100,8 @@ function createCard(leaflet) {
                         <button class="btn-custom btn-primary-custom" onclick="showPhoto(${leaflet.id})">
                             <i class="fas fa-eye"></i> Lihat Foto
                         </button>
-                        <a href="#" class="btn-custom btn-outline-custom" onclick="requestLeaflet(${leaflet.id}); return false;">
-                            <i class="fas fa-file-download"></i> Ajukan
+                        <a href="index.html?leaflet=${encodeURIComponent(leaflet.title)}" class="btn-custom btn-outline-custom">
+                            <i class="fas fa-copy"></i> Ajukan Permintaan
                         </a>
                     </div>
                 </div>
@@ -120,7 +128,7 @@ function renderCards(data) {
     container.innerHTML = data.map(leaflet => createCard(leaflet)).join('');
 }
 
-// Fungsi search dengan highlighting
+// Fungsi search dengan debounce
 function searchLeaflets(query) {
     const searchTerm = query.toLowerCase().trim();
     
@@ -130,7 +138,6 @@ function searchLeaflets(query) {
         return;
     }
     
-    // Filter berdasarkan title, description, category, dan keywords
     const results = leafletData.filter(leaflet => {
         const titleMatch = leaflet.title.toLowerCase().includes(searchTerm);
         const descMatch = leaflet.description.toLowerCase().includes(searchTerm);
@@ -145,7 +152,6 @@ function searchLeaflets(query) {
     currentDisplayedData = results;
     renderCards(results);
     
-    // Tambahkan efek smooth scroll ke hasil
     if (results.length > 0) {
         document.getElementById('leaflet-cards').scrollIntoView({ 
             behavior: 'smooth', 
@@ -158,16 +164,14 @@ function searchLeaflets(query) {
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     
-    // Real-time search dengan debounce
     let searchTimeout;
     searchInput.addEventListener('input', function(e) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             searchLeaflets(e.target.value);
-        }, 300); // Delay 300ms untuk performa lebih baik
+        }, 300);
     });
     
-    // Search saat Enter ditekan
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             clearTimeout(searchTimeout);
@@ -175,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Render initial cards
     renderCards(leafletData);
 });
 
@@ -193,29 +196,13 @@ function showPhoto(leafletId) {
              alt="${leaflet.title}" 
              class="img-fluid"
              onerror="this.src='https://via.placeholder.com/800x600?text=Gambar+Tidak+Tersedia'">
-        <div class="mt-3">
-            <span class="badge bg-primary">${leaflet.category}</span>
-            <p class="mt-3 text-muted">${leaflet.description}</p>
-        </div>
     `;
     
     const modal = new bootstrap.Modal(document.getElementById('photoModal'));
     modal.show();
 }
 
-// Fungsi untuk ajukan permintaan leaflet
-function requestLeaflet(leafletId) {
-    const leaflet = leafletData.find(l => l.id === leafletId);
-    if (!leaflet) return;
-    
-    // Simulasi pengajuan - bisa diganti dengan request ke server
-    alert(`✅ Permintaan leaflet "${leaflet.title}" telah diajukan!\n\nTerima kasih. Leaflet akan segera diproses.`);
-    
-    // Atau bisa redirect ke form pengajuan
-    // window.location.href = `form.html?leaflet=${leafletId}`;
-}
-
-// Fungsi untuk filter berdasarkan kategori (opsional)
+// Fungsi untuk filter berdasarkan kategori
 function filterByCategory(category) {
     if (category === 'all') {
         currentDisplayedData = [...leafletData];
@@ -224,16 +211,18 @@ function filterByCategory(category) {
     }
     renderCards(currentDisplayedData);
     
-    // Update active state pada button
     document.querySelectorAll('.btn-filter').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.closest('.btn-filter').classList.add('active');
+    // event.target is not reliable, so find the button by its text content
+    document.querySelectorAll('.btn-filter').forEach(btn => {
+        if (btn.textContent.trim() === event.target.textContent.trim()) {
+            btn.classList.add('active');
+        }
+    });
     
-    // Clear search input
     document.getElementById('searchInput').value = '';
     
-    // Smooth scroll ke hasil
     document.getElementById('leaflet-cards').scrollIntoView({ 
         behavior: 'smooth', 
         block: 'start' 
@@ -242,5 +231,4 @@ function filterByCategory(category) {
 
 // Export functions untuk digunakan di HTML
 window.showPhoto = showPhoto;
-window.requestLeaflet = requestLeaflet;
 window.filterByCategory = filterByCategory;
